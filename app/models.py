@@ -58,6 +58,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     content = db.Column(db.String(300))
+    # image = db.Column(db.String(300))
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     comments = db.relationship('Comment', backref='author', lazy=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -87,8 +88,9 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, content, user_id):
+    def __init__(self, content, post_id, user_id):
         self.content = content
+        self.post_id = post_id
         self.user_id = user_id
 
     def __repr__(self):
@@ -100,7 +102,7 @@ class Comment(db.Model):
             "content": self.content,
             "date_created": self.date_created,
             "post_id": self.post_id,
-            "user": User.query.get(current_user).username
+            "user": User.query.get(self.user_id).username
         }
 
 # class Kekambas(db.Model):

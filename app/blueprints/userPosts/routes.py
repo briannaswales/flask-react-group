@@ -3,7 +3,7 @@ from flask import request, url_for, jsonify
 from app import db
 from flask_login import login_required, current_user
 from .forms import PostForm, CommentForm
-from app.models import Post
+from app.models import Post, Comment
 from app.auth import token_auth
 
 @blog.route('/posts', methods=['GET'])
@@ -13,12 +13,12 @@ def posts():
 
 # Added comments here - JG
 @blog.route('/posts/<int:id>', methods=['GET', 'POST'])
-@login_required
+@token_auth.login_required
 def post(id):
     p = Post.query.get_or_404(id)
-    comments = Comment.query.filter_by(p.id)
-    both = [p.to_dict(), [c.to_dict() for c in comments]]
-    return jsonify([i for i in both])
+    # comments = Comment.query.filter_by(p.id)
+    # both = [p.to_dict(), [c.to_dict() for c in comments]]
+    return jsonify(p.to_dict())
 
 @blog.route('/createpost', methods=['POST'])
 @token_auth.login_required
@@ -30,9 +30,27 @@ def createpost():
     db.session.commit()
     return jsonify(p.to_dict())
 
+@blog.route('/posts/<int:id>/comment', methods=['GET', 'POST'])
+@token_auth.login_required
+def postComment(id):
+    # p = Post.query.get_or_404(id)
+    comments = Comment.query.filter_by(post_id=id).all()
+    # both = [p.to_dict(), [c.to_dict() for c in comments]]
+    return jsonify([c.to_dict() for c in comments])
+
+@blog.route('/posts/<int:id>/create/comment', methods=['GET', 'POST'])
+@token_auth.login_required
+def postCreateComment(id):
+    data = request.json
+    user = token_auth.current_user().id
+    p = Comment(data['content'], id, user)
+    db.session.add(p)
+    db.session.commit()
+    return jsonify(p.to_dict())
+
 
 @blog.route('/myposts', methods=['GET'])
-@login_required
+@token_auth.login_required
 def myposts():
     title = "EAT | My Posts"
     posts = current_user.posts

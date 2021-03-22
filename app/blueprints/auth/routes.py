@@ -40,6 +40,7 @@ def login():
         data = request.json
         username = data['username']
         password = data['password']
+        remember_me = data['remember_me']
 
         user = User.query.filter_by(username=username).first()
 
@@ -47,7 +48,7 @@ def login():
             message = "Email and/or password is not valid. Please try again."    
             return jsonify({ 'message': message }), 404
         # never calls login function
-        login_user(user)
+        login_user(user,remember=remember_me)
         print(current_user)
         return jsonify(user.get_token())
         # return data??? on current user
